@@ -377,7 +377,32 @@ $('#btn-convert-figma')?.addEventListener('click', async () => {
         // Step 5: Open the first SVG in Photopea
         const firstSvg = svgDataArray[0];
         updateProgress(48, `Abrindo "${firstSvg.frame.name}" no Photopea...`);
-        const svgBlob = new Blob([firstSvg.svgText], { type: 'image/svg+xml' });
+
+        // PRE-PROCESS SVG: Remove vectorized text groups so we don't get duplicate shapes
+        let finalSvgText = firstSvg.svgText;
+        if (textNodes.length > 0) {
+            try {
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(firstSvg.svgText, 'image/svg+xml');
+                let removedCount = 0;
+                for (const tn of textNodes) {
+                    // Figma SVG export with svg_include_id=true uses "id" attribute matching the node id
+                    const el = svgDoc.getElementById(tn.id);
+                    if (el) {
+                        el.remove();
+                        removedCount++;
+                    }
+                }
+                if (removedCount > 0) {
+                    finalSvgText = new XMLSerializer().serializeToString(svgDoc);
+                    console.log(`Removed ${removedCount} vectorized text groups from SVG before import.`);
+                }
+            } catch (e) {
+                console.warn('Failed to pre-process SVG text removal:', e);
+            }
+        }
+
+        const svgBlob = new Blob([finalSvgText], { type: 'image/svg+xml' });
         const svgBuffer = await svgBlob.arrayBuffer();
         await loadFileInPhotopea(svgBuffer);
 

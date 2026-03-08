@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Converter — Figma ↔ PSD ↔ PPTX</title>
+  <meta name="description" content="Converta arquivos entre Figma, Photoshop e PowerPoint com precisão de camadas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="8" fill="url(#logo-grad)" />
+            <path d="M8 10h5v3H8zM15 10h5v3h-5zM8 15h5v3H8zM15 15h5v3h-5z" fill="white" opacity="0.9" />
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="28" y2="28">
+                <stop stop-color="#2B2B2B" />
+                <stop offset="1" stop-color="#555" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="header-title">Design Converter</h1>
+      </div>
+      <p class="header-subtitle">Figma · Photoshop · PowerPoint</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="figma-to-psd" id="btn-figma-to-psd">
+          <span class="mode-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7 2H4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" stroke="currentColor"
+                stroke-width="1.5" />
+              <path d="M16 2h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" stroke="currentColor"
+                stroke-width="1.5" />
+              <path d="M7 11H4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2Z" stroke="currentColor"
+                stroke-width="1.5" />
+              <circle cx="14.5" cy="14.5" r="3.5" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </span>
+          <span class="mode-label">Figma → PSD</span>
+        </button>
+        <button class="mode-btn" data-mode="psd-to-figma" id="btn-psd-to-figma">
+          <span class="mode-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" />
+              <path d="M6 7h3v6H6z" fill="currentColor" opacity="0.3" />
+              <path d="M11 5h3v8h-3z" fill="currentColor" opacity="0.2" />
+            </svg>
+          </span>
+          <span class="mode-label">PSD → Figma</span>
+        </button>
+        <button class="mode-btn" data-mode="pptx-to-psd" id="btn-pptx-to-psd">
+          <span class="mode-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5" />
+              <path d="M6 8h8M6 11h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="mode-label">PPTX → PSD</span>
+        </button>
+        <button class="mode-btn" data-mode="psd-to-pptx" id="btn-psd-to-pptx">
+          <span class="mode-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" />
+              <path d="M7 6l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <path d="M11 14h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="mode-label">PSD → PPTX</span>
+        </button>
+      </div>
+
+      <!-- Figma → PSD Panel -->
+      <section class="panel active" id="panel-figma-to-psd">
+        <div class="panel-card">
+          <h2 class="panel-title">Figma → Photoshop</h2>
+          <p class="panel-desc">Converta seu arquivo Figma para PSD com camadas reais, imagens e posições preservadas.
+          </p>
+
+          <!-- Sub-mode tabs -->
+          <div class="sub-tabs" id="figma-sub-tabs">
+            <button class="sub-tab active" data-subtab="fig-upload" id="subtab-fig-upload">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2v8M4 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" />
+              </svg>
+              Upload .fig
+            </button>
+            <button class="sub-tab" data-subtab="fig-api" id="subtab-fig-api">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 4h8M4 8h8M4 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              Link + API
+            </button>
+          </div>
+
+          <!-- Upload .fig sub-panel -->
+          <div class="sub-panel active" id="subpanel-fig-upload">
+            <div class="upload-zone" id="upload-zone-fig">
+              <div class="upload-icon">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <path d="M20 6v20M12 14l8-8 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                  <path d="M6 26v4a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4v-4" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" />
+                </svg>
+              </div>
+              <p class="upload-text">Arraste o <strong>.fig</strong> aqui ou clique para selecionar</p>
+              <p class="upload-hint">O arquivo é processado via Photopea embutido + pós-processamento</p>
+              <input type="file" id="fig-file-input" accept=".fig" hidden />
+            </div>
+
+            <div class="file-info hidden" id="fig-file-info">
+              <div class="file-info-row">
+                <span class="file-name" id="fig-file-name"></span>
+                <button class="btn-remove" id="btn-remove-fig">✕</button>
+              </div>
+            </div>
+
+            <button class="btn-primary disabled" id="btn-convert-fig" disabled>
+              <span class="btn-icon">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+              Converter .fig para PSD
+            </button>
+          </div>
+
+          <!-- Link + API sub-panel -->
+          <div class="sub-panel" id="subpanel-fig-api">
+            <div class="form-group">
+              <label for="figma-url" class="form-label">Link do arquivo Figma</label>
+              <input type="text" id="figma-url" class="form-input"
+                placeholder="https://www.figma.com/design/XXXXX/..." />
+            </div>
+
+            <details class="form-group" id="token-details">
+              <summary class="form-label"
+                style="cursor:pointer; user-select:none; list-style:none; display:flex; align-items:center; gap:6px;">
+                Token de API
+                <span id="token-status" style="font-size:0.75rem; opacity:0.5;"></span>
+                <a href="https://www.figma.com/developers/api#access-tokens" target="_blank" class="form-hint-link"
+                  style="margin-left:auto;" onclick="event.stopPropagation();">Como gerar?</a>
+              </summary>
+              <input type="text" id="figma-token" class="form-input" placeholder="figd_XXXXXXXX..."
+                autocomplete="new-password" data-1p-ignore data-lpignore="true" data-form-type="other"
+                style="margin-top:8px;" />
+              <span class="form-hint">Salvo automaticamente no navegador.</span>
+            </details>
+
+            <div class="form-group">
+              <label class="form-label">Opções</label>
+              <div class="checkbox-group">
+                <label class="checkbox-label" for="opt-all-pages">
+                  <input type="checkbox" id="opt-all-pages" checked />
+                  <span class="checkbox-custom"></span>
+                  Incluir todas as páginas (pranchetas)
+                </label>
+                <label class="checkbox-label" for="opt-flatten-images">
+                  <input type="checkbox" id="opt-flatten-images" />
+                  <span class="checkbox-custom"></span>
+                  Mesclar grupos em camadas únicas (mais leve)
+                </label>
+              </div>
+            </div>
+
+            <button class="btn-primary" id="btn-convert-figma">
+              <span class="btn-icon">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+              Converter via API
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PSD → Figma Panel -->
+      <section class="panel" id="panel-psd-to-figma">
+        <div class="panel-card">
+          <h2 class="panel-title">Photoshop → Figma</h2>
+          <p class="panel-desc">Faça upload do PSD. Cada camada será extraída como PNG com metadados de posição para
+            importar no Figma.</p>
+
+          <div class="upload-zone" id="upload-zone-psd">
+            <div class="upload-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M20 6v20M12 14l8-8 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M6 26v4a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4v-4" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" />
+              </svg>
+            </div>
+            <p class="upload-text">Arraste o <strong>.PSD</strong> aqui ou clique para selecionar</p>
+            <p class="upload-hint">Suporta arquivos de até 100MB</p>
+            <input type="file" id="psd-file-input" accept=".psd" hidden />
+          </div>
+
+          <div class="file-info hidden" id="psd-file-info">
+            <div class="file-info-row">
+              <span class="file-name" id="psd-file-name"></span>
+              <button class="btn-remove" id="btn-remove-psd">✕</button>
+            </div>
+          </div>
+
+          <button class="btn-primary disabled" id="btn-convert-psd" disabled>
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+            Extrair Layers para Figma
+          </button>
+        </div>
+      </section>
+
+      <!-- PPTX → PSD Panel -->
+      <section class="panel" id="panel-pptx-to-psd">
+        <div class="panel-card">
+          <h2 class="panel-title">PowerPoint → Photoshop</h2>
+          <p class="panel-desc">Upload do PPTX. Cada slide vira uma página PSD com shapes e imagens como camadas
+            separadas.</p>
+
+          <div class="upload-zone" id="upload-zone-pptx">
+            <div class="upload-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M20 6v20M12 14l8-8 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M6 26v4a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4v-4" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" />
+              </svg>
+            </div>
+            <p class="upload-text">Arraste o <strong>.PPTX</strong> aqui ou clique para selecionar</p>
+            <p class="upload-hint">Suporta arquivos de até 100MB</p>
+            <input type="file" id="pptx-file-input" accept=".pptx" hidden />
+          </div>
+
+          <div class="file-info hidden" id="pptx-file-info">
+            <div class="file-info-row">
+              <span class="file-name" id="pptx-file-name"></span>
+              <button class="btn-remove" id="btn-remove-pptx">✕</button>
+            </div>
+          </div>
+
+          <button class="btn-primary disabled" id="btn-convert-pptx" disabled>
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+            Converter para PSD
+          </button>
+        </div>
+      </section>
+
+      <!-- PSD → PPTX Panel -->
+      <section class="panel" id="panel-psd-to-pptx">
+        <div class="panel-card">
+          <h2 class="panel-title">Photoshop → PowerPoint</h2>
+          <p class="panel-desc">Upload do PSD. Cada artboard ou grupo de topo vira um slide no PowerPoint.</p>
+
+          <div class="upload-zone" id="upload-zone-psd-pptx">
+            <div class="upload-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M20 6v20M12 14l8-8 8 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M6 26v4a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4v-4" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" />
+              </svg>
+            </div>
+            <p class="upload-text">Arraste o <strong>.PSD</strong> aqui ou clique para selecionar</p>
+            <p class="upload-hint">Suporta arquivos de até 100MB</p>
+            <input type="file" id="psd-pptx-file-input" accept=".psd" hidden />
+          </div>
+
+          <div class="file-info hidden" id="psd-pptx-file-info">
+            <div class="file-info-row">
+              <span class="file-name" id="psd-pptx-file-name"></span>
+              <button class="btn-remove" id="btn-remove-psd-pptx">✕</button>
+            </div>
+          </div>
+
+          <button class="btn-primary disabled" id="btn-convert-psd-pptx" disabled>
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+            Converter para PPTX
+          </button>
+        </div>
+      </section>
+
+      <!-- Progress / Status -->
+      <div class="progress-container hidden" id="progress-container">
+        <div class="progress-card">
+          <div class="progress-header">
+            <span class="progress-title" id="progress-title">Convertendo...</span>
+            <span class="progress-percent" id="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="progress-status" id="progress-status">Iniciando...</p>
+          <div class="progress-layers hidden" id="progress-layers">
+            <p class="progress-layers-title">Camadas processadas:</p>
+            <ul class="progress-layers-list" id="progress-layers-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="result-container hidden" id="result-container">
+        <div class="result-card">
+          <div class="result-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="20" fill="#E8F5E9" />
+              <path d="M16 24l6 6 12-12" stroke="#2E7D32" stroke-width="3" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+          <h3 class="result-title">Conversão concluída!</h3>
+          <p class="result-desc" id="result-desc"></p>
+          <button class="btn-primary" id="btn-download">
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 3v10M4 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M2 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </span>
+            Baixar Arquivo
+          </button>
+          <button class="btn-secondary" id="btn-new-conversion">Nova conversão</button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="error-container hidden" id="error-container">
+        <div class="error-card">
+          <div class="error-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="20" fill="#FFEBEE" />
+              <path d="M18 18l12 12M30 18L18 30" stroke="#C62828" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </div>
+          <h3 class="error-title">Erro na conversão</h3>
+          <p class="error-desc" id="error-desc"></p>
+          <button class="btn-secondary" id="btn-retry">Tentar novamente</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Seus arquivos são processados 100% no seu navegador. Nenhum dado é enviado a servidores externos.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

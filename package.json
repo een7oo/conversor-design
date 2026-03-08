@@ -1,0 +1,17 @@
+{
+  "name": "design-converter",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ag-psd": "^30.1.0",
+    "fig-kiwi": "^0.0.1",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "vite": "^6.2.2"
+  }
+}

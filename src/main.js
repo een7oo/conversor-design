@@ -278,6 +278,26 @@ $('#btn-convert-fig')?.addEventListener('click', async () => {
         // and shifting position upward. Paragraph text preserves all lines correctly.
         updateProgress(65, 'Verificando camadas de texto...');
 
+        // Step 4b: Force re-render all text layers so the cached bitmap
+        // matches the actual font data (fixes wrong visual font style)
+        updateProgress(70, 'Corrigindo renderização de fontes...');
+        await runScript(`
+            function touchTextLayers(parent) {
+                for (var i = 0; i < parent.layers.length; i++) {
+                    var layer = parent.layers[i];
+                    if (layer.typename === "LayerSet") {
+                        touchTextLayers(layer);
+                    } else if (layer.typename === "ArtLayer" && layer.kind === LayerKind.TEXT) {
+                        try {
+                            var t = layer.textItem;
+                            t.contents = t.contents;
+                        } catch(e) {}
+                    }
+                }
+            }
+            touchTextLayers(app.activeDocument);
+        `);
+
         // Step 5: Export entire document as PSD directly from Photopea
         updateProgress(80, 'Exportando como PSD...');
         const psdArrayBuffer = await exportAsPsd();

@@ -105,9 +105,10 @@ function collectNodeRecursive(node, pageName, nodes, flattenGroups, depth) {
     }
 
     // ── IMAGE fill detection ──
+    // Figma fills array goes bottom-to-top, so the LAST visible image fill is the topmost
     const hasImageFill = node.fills?.some(f => f.type === 'IMAGE' && f.visible !== false);
     if (hasImageFill) {
-        const imgFill = node.fills.find(f => f.type === 'IMAGE');
+        const imgFill = node.fills.findLast(f => f.type === 'IMAGE' && f.visible !== false);
         nodeInfo.isImageFill = true;
         nodeInfo.imageRef = imgFill.imageRef; // hash for /v1/images endpoint
         nodeInfo.scaleMode = imgFill.scaleMode || 'FILL';

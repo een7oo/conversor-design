@@ -273,23 +273,10 @@ $('#btn-convert-fig')?.addEventListener('click', async () => {
             fixLayers(app.activeDocument);
         `);
 
-        // Step 4: Convert paragraph text to point text
-        updateProgress(65, 'Convertendo textos para ponto...');
-        await runScript(`
-            function fixTextLayers(parent) {
-                for (var i = 0; i < parent.layers.length; i++) {
-                    var layer = parent.layers[i];
-                    if (layer.typename === "LayerSet") {
-                        fixTextLayers(layer);
-                    } else if (layer.typename === "ArtLayer" && layer.kind === LayerKind.TEXT) {
-                        try {
-                            layer.textItem.kind = TextType.POINTTEXT;
-                        } catch(e) {}
-                    }
-                }
-            }
-            fixTextLayers(app.activeDocument);
-        `);
+        // Step 4: Keep paragraph text as-is (do NOT convert to point text)
+        // Converting to POINTTEXT was truncating multi-line text to only the first line
+        // and shifting position upward. Paragraph text preserves all lines correctly.
+        updateProgress(65, 'Verificando camadas de texto...');
 
         // Step 5: Export entire document as PSD directly from Photopea
         updateProgress(80, 'Exportando como PSD...');

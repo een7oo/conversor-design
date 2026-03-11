@@ -273,45 +273,37 @@ $('#btn-convert-fig')?.addEventListener('click', async () => {
             fixLayers(app.activeDocument);
         `);
 
-        // Step 3b: Clean up Smart Objects — keep only the top layer inside each
-        // Figma stacks multiple fills as layers inside a Smart Object, but we only
-        // want the topmost (visible) one. This opens each SO, removes bottom layers,
-        // flattens, saves and closes.
-        updateProgress(55, 'Limpando camadas internas dos Smart Objects...');
+        // Step 3b: Flatten Smart Objects — merge all fill layers into one
+        // Figma stacks multiple fills inside a single layer. Photopea turns them
+        // into separate layers inside a Smart Object. Flatten merges them all,
+        // respecting visibility and stacking order (top layer wins).
+        updateProgress(55, 'Mesclando preenchimentos dos Smart Objects...');
         await runScript(`
-            function cleanSmartObjects(parent) {
+            function flattenSmartObjects(parent) {
                 for (var i = parent.layers.length - 1; i >= 0; i--) {
                     var layer = parent.layers[i];
                     if (layer.typename === "LayerSet") {
-                        cleanSmartObjects(layer);
+                        flattenSmartObjects(layer);
                     } else if (layer.typename === "ArtLayer" && layer.kind === LayerKind.SMARTOBJECT) {
                         try {
-                            var mainDoc = app.activeDocument;
                             app.activeDocument.activeLayer = layer;
 
-                            // Open the Smart Object (edits its contents)
+                            // Open the Smart Object contents
                             var desc = new ActionDescriptor();
                             executeAction(stringIDToTypeID("placedLayerEditContents"), desc, DialogModes.NO);
 
                             var soDoc = app.activeDocument;
-                            // Only clean if there are multiple layers
                             if (soDoc.layers.length > 1) {
-                                // Hide all layers except the topmost one
-                                for (var j = 1; j < soDoc.layers.length; j++) {
-                                    soDoc.layers[j].visible = false;
-                                }
-                                // Flatten to keep only the visible top layer
                                 soDoc.flattenImage();
                             }
 
-                            // Save and close the Smart Object
                             soDoc.save();
                             soDoc.close();
                         } catch(e) {}
                     }
                 }
             }
-            cleanSmartObjects(app.activeDocument);
+            flattenSmartObjects(app.activeDocument);
         `);
 
         // Step 4: Keep paragraph text as-is (do NOT convert to point text)

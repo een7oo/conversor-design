@@ -255,17 +255,29 @@ $('#btn-convert-fig')?.addEventListener('click', async () => {
                                 var savedName = layer.name;
 
                                 app.activeDocument.activeLayer = layer;
-                                layer.rasterize(RasterizeType.ENTIRELAYER);
 
-                                // Convert to Smart Object
+                                // Convert directly to Smart Object WITHOUT rasterizing.
+                                // ENTIRELAYER would bake the vector mask (rounded corners,
+                                // clip paths) into pixels — destroying the shape info.
+                                // Direct conversion transfers the vector mask to the SO.
                                 var desc = new ActionDescriptor();
                                 executeAction(stringIDToTypeID("newPlacedLayer"), desc, DialogModes.NO);
 
-                                // Restore opacity and name
                                 var smartLayer = app.activeDocument.activeLayer;
                                 smartLayer.opacity = savedOpacity;
                                 smartLayer.name = savedName;
-                            } catch(e) {}
+                            } catch(e) {
+                                // Fallback: rasterize fill content only (not the vector mask)
+                                try {
+                                    app.activeDocument.activeLayer = layer;
+                                    layer.rasterize(RasterizeType.FILLCONTENT);
+                                    var desc2 = new ActionDescriptor();
+                                    executeAction(stringIDToTypeID("newPlacedLayer"), desc2, DialogModes.NO);
+                                    var smartLayer2 = app.activeDocument.activeLayer;
+                                    smartLayer2.opacity = savedOpacity;
+                                    smartLayer2.name = savedName;
+                                } catch(e2) {}
+                            }
                         }
                     }
                 }
@@ -273,22 +285,31 @@ $('#btn-convert-fig')?.addEventListener('click', async () => {
             fixLayers(app.activeDocument);
         `);
 
-        // Step 3b: Flatten Smart Objects — merge all fill layers into one
-        // Figma stacks multiple fills inside a single layer. Photopea turns them
-        // into separate layers inside a Smart Object. Flatten merges them all,
-        // respecting visibility and stacking order (top layer wins).
+        // Step 3b: Flatten Smart Objects that have multiple fill layers inside.
+        // Figma stacks multiple fills per layer; Photopea turns them into separate
+        // sub-layers inside the SO. Flatten only when there are >1 sub-layers AND
+        // none of them have vector/layer masks (which would indicate a clipping shape
+        // that must be preserved — e.g. rounded corners or a mask from Figma).
         updateProgress(55, 'Mesclando preenchimentos dos Smart Objects...');
         await runScript(`
+            function hasAnyMask(layer) {
+                try { if (layer.vectorMask) return true; } catch(e) {}
+                try { if (layer.mask) return true; } catch(e) {}
+                return false;
+            }
+
             function flattenSmartObjects(parent) {
                 for (var i = parent.layers.length - 1; i >= 0; i--) {
                     var layer = parent.layers[i];
                     if (layer.typename === "LayerSet") {
                         flattenSmartObjects(layer);
                     } else if (layer.typename === "ArtLayer" && layer.kind === LayerKind.SMARTOBJECT) {
+                        // Skip SOs that have a vector/layer mask — flattening would
+                        // lose the clipping path (rounded corners, Figma clip masks).
+                        if (hasAnyMask(layer)) continue;
                         try {
                             app.activeDocument.activeLayer = layer;
 
-                            // Open the Smart Object contents
                             var desc = new ActionDescriptor();
                             executeAction(stringIDToTypeID("placedLayerEditContents"), desc, DialogModes.NO);
 

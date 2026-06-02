@@ -19,6 +19,12 @@ let photopeaWindow = null;
 let messageQueue = [];
 let isReady = false;
 
+// instanceof fails for cross-iframe ArrayBuffers — use toString check instead
+function isArrayBuffer(val) {
+  return val instanceof ArrayBuffer ||
+    Object.prototype.toString.call(val) === '[object ArrayBuffer]';
+}
+
 /**
  * Initialize Photopea in a hidden iframe.
  * Returns a promise that resolves when Photopea is ready.
@@ -357,7 +363,7 @@ export async function exportLayersAsPng(onProgress) {
     for (const r of result) {
       if (typeof r === 'string' && r.startsWith('LAYER_INFO:')) {
         layerInfo = JSON.parse(r.replace('LAYER_INFO:', ''));
-      } else if (r instanceof ArrayBuffer) {
+      } else if (isArrayBuffer(r)) {
         pngData = r;
       }
     }
@@ -395,7 +401,7 @@ export async function exportLayersAsPng(onProgress) {
  */
 export async function exportAsPsd() {
   const result = await runScript('app.activeDocument.saveToOE("psd");');
-  const psdData = result.find(r => r instanceof ArrayBuffer);
+  const psdData = result.find(r => isArrayBuffer(r));
   if (!psdData) throw new Error('Falha ao exportar PSD do Photopea.');
   return psdData;
 }

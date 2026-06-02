@@ -19,10 +19,18 @@ let photopeaWindow = null;
 let messageQueue = [];
 let isReady = false;
 
-// instanceof fails for cross-iframe ArrayBuffers — use toString check instead
 function isArrayBuffer(val) {
-  return val instanceof ArrayBuffer ||
-    Object.prototype.toString.call(val) === '[object ArrayBuffer]';
+  if (!val) return false;
+  if (Object.prototype.toString.call(val) === '[object ArrayBuffer]') return true;
+  // Photopea may send Uint8Array instead of raw ArrayBuffer
+  if (ArrayBuffer.isView(val) && !(val instanceof DataView)) return true;
+  return false;
+}
+
+function toArrayBuffer(val) {
+  if (val instanceof ArrayBuffer) return val;
+  if (ArrayBuffer.isView(val)) return val.buffer.slice(val.byteOffset, val.byteOffset + val.byteLength);
+  return val;
 }
 
 /**
@@ -364,7 +372,7 @@ export async function exportLayersAsPng(onProgress) {
       if (typeof r === 'string' && r.startsWith('LAYER_INFO:')) {
         layerInfo = JSON.parse(r.replace('LAYER_INFO:', ''));
       } else if (isArrayBuffer(r)) {
-        pngData = r;
+        pngData = toArrayBuffer(r);
       }
     }
 
@@ -396,14 +404,66 @@ export async function exportLayersAsPng(onProgress) {
 }
 
 /**
- * Simple approach: export the whole document as PSD from Photopea.
- * Returns the PSD ArrayBuffer.
+ * Export the document as PSD from Photopea.
+ * Uses a dedicated listener so binary data is captured even if it
+ * arrives after the "done" signal (which can happen with large files).
  */
-export async function exportAsPsd() {
-  const result = await runScript('app.activeDocument.saveToOE("psd");');
-  const psdData = result.find(r => isArrayBuffer(r));
-  if (!psdData) throw new Error('Falha ao exportar PSD do Photopea.');
-  return psdData;
+export function exportAsPsd() {
+  return new Promise((resolve, reject) => {
+    if (!photopeaWindow) {
+      reject(new Error('Photopea não inicializado'));
+      return;
+    }
+
+    let receivedDone = false;
+    let psdData = null;
+
+    const timeout = setTimeout(() => {
+      window.removeEventListener('message', handler);
+      reject(new Error('Timeout ao exportar PSD do Photopea.'));
+    }, 120000);
+
+    const tryFinish = () => {
+      if (receivedDone && psdData) {
+        clearTimeout(timeout);
+        window.removeEventListener('message', handler);
+        resolve(toArrayBuffer(psdData));
+      } else if (receivedDone && !psdData) {
+        // "done" arrived before binary — wait up to 10s more
+        const fallbackTimer = setTimeout(() => {
+          window.removeEventListener('message', handler);
+          clearTimeout(timeout);
+          reject(new Error('Falha ao exportar PSD do Photopea.'));
+        }, 10000);
+        const originalHandler = handler;
+        window.removeEventListener('message', handler);
+        const waitHandler = (e) => {
+          if (e.source !== photopeaWindow) return;
+          if (isArrayBuffer(e.data)) {
+            clearTimeout(fallbackTimer);
+            clearTimeout(timeout);
+            window.removeEventListener('message', waitHandler);
+            resolve(toArrayBuffer(e.data));
+          }
+        };
+        window.addEventListener('message', waitHandler);
+      }
+    };
+
+    const handler = (e) => {
+      if (e.source !== photopeaWindow) return;
+      if (isArrayBuffer(e.data)) {
+        psdData = e.data;
+        if (receivedDone) tryFinish();
+      } else if (e.data === 'done') {
+        receivedDone = true;
+        tryFinish();
+      }
+    };
+
+    window.addEventListener('message', handler);
+    photopeaWindow.postMessage('app.activeDocument.saveToOE("psd");', '*');
+  });
 }
 
 /**
